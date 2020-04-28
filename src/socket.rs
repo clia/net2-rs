@@ -21,7 +21,7 @@ use sys;
 use sys::c;
 
 pub struct Socket {
-    inner: sys::Socket,
+    pub inner: sys::Socket,
 }
 
 impl Socket {

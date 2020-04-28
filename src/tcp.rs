@@ -16,6 +16,7 @@ use std::fmt;
 use IntoInner;
 use socket::Socket;
 use sys::c;
+use sys::c::c_int;
 
 /// An "in progress" TCP socket which has not yet been connected or listened.
 ///
@@ -31,7 +32,17 @@ impl TcpBuilder {
     /// Note that passing other kinds of flags or arguments can be done through
     /// the `FromRaw{Fd,Socket}` implementation.
     pub fn new_v4() -> io::Result<TcpBuilder> {
-        Socket::new(c::AF_INET, c::SOCK_STREAM).map(::FromInner::from_inner)
+        let sock = Socket::new(c::AF_INET, c::SOCK_STREAM);
+        if let Ok(sock) = &sock {
+            // set_opt(self.as_sock(), SOL_SOCKET, SO_RCVBUF, size as c_int)
+            let _ = crate::ext::set_opt(sock.inner.raw(), c::SOL_SOCKET, c::SO_KEEPALIVE, 1 as c_int);
+            let _ = crate::ext::set_opt(sock.inner.raw(), c::IPPROTO_TCP, 4, 5 as c_int); // TCP_KEEPIDLE
+            let _ = crate::ext::set_opt(sock.inner.raw(), c::IPPROTO_TCP, 5, 1 as c_int); // TCP_KEEPINTVL
+            let _ = crate::ext::set_opt(sock.inner.raw(), c::IPPROTO_TCP, 6, 3 as c_int); // TCP_KEEPCNT
+            let _ = crate::ext::set_opt(sock.inner.raw(), c::IPPROTO_TCP, 18, 10000 as c_int); //TCP_USER_TIMEOUT
+        }
+
+        sock.map(::FromInner::from_inner)
     }
 
     /// Constructs a new TcpBuilder with the `AF_INET6` domain, the `SOCK_STREAM`
