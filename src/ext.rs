@@ -28,6 +28,7 @@ cfg_if! {
                  target_os = "netbsd",
                  target_os = "openbsd",
                  target_os = "solaris",
+                 target_os = "illumos",
                  target_env = "uclibc"))] {
         use libc::IPV6_JOIN_GROUP as IPV6_ADD_MEMBERSHIP;
         use libc::IPV6_LEAVE_GROUP as IPV6_DROP_MEMBERSHIP;
@@ -62,7 +63,7 @@ struct tcp_keepalive {
 
 #[cfg(target_os = "wasi")]
 pub fn set_opt<T: Copy>(_sock: Socket, _opt: c_int, _val: c_int,
-                       _payload: T) -> io::Result<()> { 
+                       _payload: T) -> io::Result<()> {
     Ok(())
 }
 
